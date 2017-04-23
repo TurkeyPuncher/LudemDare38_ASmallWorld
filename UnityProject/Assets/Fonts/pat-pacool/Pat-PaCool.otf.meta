@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: 5c53804da5318704d884e0ab848b9619
+timeCreated: 1492967895
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Pat PaCool
+  fontNames:
+  - Pat PaCool
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

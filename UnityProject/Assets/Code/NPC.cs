@@ -141,6 +141,8 @@ public class NPC : MonoBehaviour
         m_earImage.color = faceColorColor;
 
         m_glassesImage.enabled = (hasGlasses) ? true : false;
+
+        GameManager.Instance.AddPopulation();
     }
 
     public IEnumerator ChangeDirectionRoutine(float timeToChange)
@@ -216,5 +218,10 @@ public class NPC : MonoBehaviour
     public void SetStateColor(Color color)
     {
         m_stateColorMeshRenderer.material.color = color;
+    }
+    
+    public void Dead()
+    {
+        GameManager.Instance.RemovePopulation();
     }
 }
