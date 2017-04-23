@@ -32,113 +32,37 @@ public class NPC : MonoBehaviour
     [SerializeField]
     private Transform m_npcTransform;
 
-    public Face FaceType { get; private set; }
-    public FaceColor FaceColorType { get; private set; }
-    public Mouth MouthType { get; private set; }
-    public Nose NoseType { get; private set; }
-    public Eyes EyesType { get; private set; }
-    public Glasses GlassesType { get; private set; }
-    public Brow BrowType { get; private set; }
-    public Hair HairType { get; private set; }
-    public HairColor HairColorType { get; private set; }
-    public Ears EarType { get; private set; }
+    public NPCFactory.Face FaceType { get; private set; }
+    public NPCFactory.FaceColor FaceColorType { get; private set; }
+    public NPCFactory.Mouth MouthType { get; private set; }
+    public NPCFactory.Nose NoseType { get; private set; }
+    public NPCFactory.Eyes EyesType { get; private set; }
+    public NPCFactory.Glasses GlassesType { get; private set; }
+    public NPCFactory.Brow BrowType { get; private set; }
+    public NPCFactory.Hair HairType { get; private set; }
+    public NPCFactory.HairColor HairColorType { get; private set; }
+    public NPCFactory.Ears EarType { get; private set; }
     public bool HasGlasses { get; private set; }
 
     public Transform NPCTransform { get { return m_npcTransform; } }
 
     private NPCFactory m_factory;
-
-    public enum Face : byte
-    {
-        Regular,
-        Fat,
-    }
-
-    public enum FaceColor : byte
-    {
-        Pink,
-        Yellow,
-        Brown,
-        Blue,
-        Purple,
-    }
-
-    public enum Mouth : byte
-    {
-        Happy,
-        Neutral,
-        Sad,
-        Angry,
-    }
-
-    public enum Nose : byte
-    {
-        Normal,
-        Big,
-        Snout,
-    }
-
-    public enum Eyes : byte
-    {
-        Normal,
-        Asian,
-        Disney,
-        Droopy,
-    }
-
-    public enum Glasses : byte
-    {
-        Normal,
-    }
-
-    public enum Brow : byte
-    {
-        Regular,
-        Fuzzy,
-        Unibrow,
-        Thin,
-    }
-
-    public enum Hair : byte
-    {
-        Regular,
-        Fabio,
-        FlatTop,
-        Curly,
-    }
-
-    public enum HairColor : byte
-    {
-        Black,
-        Brown,
-        Yellow,
-        White,
-        Red,
-    }
-
-    public enum Ears : byte
-    {
-        Regular,
-        Fabio,
-        FlatTop,
-        Curly,
-    }
-
-    void Awake()
+    
+    void Start()
     {
         m_factory = NPCFactory.Instance;
     }
 
-    public void SetTraitsAndLook(Face face, Sprite faceSprite,
-        FaceColor faceColor, Color faceColorColor,
-        Mouth mouth, Sprite mouthSprite,
-        Nose nose, Sprite noseSprite,
-        Eyes eyes, Sprite eyesSprite,
-        Glasses glasses, Sprite glassesSprite,
-        Brow brow, Sprite browSprite,
-        Hair hair, Sprite hairSprite,
-        HairColor hairColor, Color hairColorColor,
-        Ears ear, Sprite earSprite,
+    public void SetTraitsAndLook(NPCFactory.Face face, Sprite faceSprite,
+        NPCFactory.FaceColor faceColor, Color faceColorColor,
+        NPCFactory.Mouth mouth, Sprite mouthSprite,
+        NPCFactory.Nose nose, Sprite noseSprite,
+        NPCFactory.Eyes eyes, Sprite eyesSprite,
+        NPCFactory.Glasses glasses, Sprite glassesSprite,
+        NPCFactory.Brow brow, Sprite browSprite,
+        NPCFactory.Hair hair, Sprite hairSprite,
+        NPCFactory.HairColor hairColor, Color hairColorColor,
+        NPCFactory.Ears ear, Sprite earSprite,
         bool hasGlasses)
     {
         FaceType = face;

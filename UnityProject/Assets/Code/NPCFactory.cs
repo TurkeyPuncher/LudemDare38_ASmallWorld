@@ -37,6 +37,86 @@ public class NPCFactory : MonoBehaviour
     [SerializeField]
     public Sprite[] m_earSprites = null;
 
+    public enum Face : byte
+    {
+        Regular,
+        Fat,
+    }
+
+    public enum FaceColor : byte
+    {
+        Yellow,
+        Orange,
+        Brown,
+        Blue,
+        Purple,
+        Pink,
+        Green,
+    }
+
+    public enum Mouth : byte
+    {
+        Happy,
+        Neutral,
+        Sad,
+        Angry,
+    }
+
+    public enum Nose : byte
+    {
+        Normal,
+        Big,
+        Snout,
+    }
+
+    public enum Eyes : byte
+    {
+        Normal,
+        Asian,
+        Disney,
+        Droopy,
+    }
+
+    public enum Glasses : byte
+    {
+        Normal,
+    }
+
+    public enum Brow : byte
+    {
+        Regular,
+        Fuzzy,
+        Unibrow,
+        Thin,
+    }
+
+    public enum Hair : byte
+    {
+        Regular,
+        Fabio,
+        FlatTop,
+        Curly,
+    }
+
+    public enum HairColor : byte
+    {
+        Black,
+        Brown,
+        Yellow,
+        White,
+        Red,
+        Green,
+        Blue,
+    }
+
+    public enum Ears : byte
+    {
+        Regular,
+        Fabio,
+        FlatTop,
+        Curly,
+    }
+
     private static NPCFactory m_instance;
     public static NPCFactory Instance
     {
@@ -82,16 +162,16 @@ public class NPCFactory : MonoBehaviour
         int hairColor = Random.Range(0, m_hairColor.Length);
         int ear = Random.Range(0, m_earSprites.Length);
 
-        npc.SetTraitsAndLook((NPC.Face)face, m_faceSprites[face],
-            (NPC.FaceColor)faceColor, m_faceColor[faceColor],
-            (NPC.Mouth)mouth, m_mouthSprites[mouth],
-            (NPC.Nose)nose, m_noseSprites[nose],
-            (NPC.Eyes)eyes, m_eyesSprites[eyes],
-            (NPC.Glasses)glasses, m_glassesSprites[glasses],
-            (NPC.Brow)brow, m_browSprites[brow],
-            (NPC.Hair)hair, m_hairSprites[hair],
-            (NPC.HairColor)hairColor, m_hairColor[hairColor],
-            (NPC.Ears)ear, m_earSprites[ear],
+        npc.SetTraitsAndLook((Face)face, m_faceSprites[face],
+            (FaceColor)faceColor, m_faceColor[faceColor],
+            (Mouth)mouth, m_mouthSprites[mouth],
+            (Nose)nose, m_noseSprites[nose],
+            (Eyes)eyes, m_eyesSprites[eyes],
+            (Glasses)glasses, m_glassesSprites[glasses],
+            (Brow)brow, m_browSprites[brow],
+            (Hair)hair, m_hairSprites[hair],
+            (HairColor)hairColor, m_hairColor[hairColor],
+            (Ears)ear, m_earSprites[ear],
             hasGlasses
             );
 
