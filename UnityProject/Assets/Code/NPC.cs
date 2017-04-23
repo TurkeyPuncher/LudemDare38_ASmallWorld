@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class NPC : MonoBehaviour
 {
@@ -32,6 +33,10 @@ public class NPC : MonoBehaviour
     [SerializeField]
     private Transform m_npcTransform;
 
+    [SerializeField]
+    private float m_walkSpeed = 0.1f;
+
+
     public NPCFactory.Face FaceType { get; private set; }
     public NPCFactory.FaceColor FaceColorType { get; private set; }
     public NPCFactory.Mouth MouthType { get; private set; }
@@ -47,10 +52,12 @@ public class NPC : MonoBehaviour
     public Transform NPCTransform { get { return m_npcTransform; } }
 
     private NPCFactory m_factory;
-    
+    private Animator m_aiStateMachine;
+
     void Start()
     {
         m_factory = NPCFactory.Instance;
+        m_aiStateMachine = GetComponent<Animator>();
     }
 
     public void SetTraitsAndLook(NPCFactory.Face face, Sprite faceSprite,
@@ -95,5 +102,44 @@ public class NPC : MonoBehaviour
         m_earImage.color = faceColorColor;
 
         m_glassesImage.enabled = (hasGlasses) ? true : false;
+    }
+    
+    public IEnumerator ChangeDirectionRoutine(float timeToChange)
+    {
+        var randomAngle = Random.Range(-180f, 180f);
+
+        var deltaTime = 0.0;
+        while (deltaTime < timeToChange)
+        {
+            deltaTime += Time.deltaTime;
+            m_npcTransform.transform.RotateAround(Vector3.zero, m_npcTransform.transform.forward, randomAngle * Time.deltaTime / timeToChange);
+            yield return new WaitForEndOfFrame();
+        }
+
+    }
+
+    public void ChangeDirection(float timeInSeconds)
+    {
+        StartCoroutine(ChangeDirectionRoutine(timeInSeconds));
+    }   
+    
+    public IEnumerator WalkCoroutine()
+    {
+        while (true)
+        {
+            m_npcTransform.transform.RotateAround(Vector3.zero, m_npcTransform.transform.right, m_walkSpeed);
+            yield return new WaitForEndOfFrame();
+        }
+    }
+
+    public void Walk()
+    {
+        StopAllCoroutines();
+        StartCoroutine(WalkCoroutine());
+    }
+
+    public void Stop()
+    {
+        StopAllCoroutines();
     }
 }

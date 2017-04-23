@@ -64,8 +64,7 @@ public class PlayerNavigation : MonoBehaviour
         {
             m_rotationY = -verticalMovement;
         }
-
-
+        
         transform.RotateAround(Vector3.zero, Camera.main.transform.up, m_rotationX);
         transform.RotateAround(Vector3.zero, Camera.main.transform.right, -m_rotationY);
         transform.RotateAround(Vector3.zero, Camera.main.transform.forward, -m_rotationZ);
