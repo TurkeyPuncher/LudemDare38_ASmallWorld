@@ -8,6 +8,8 @@ public class BaseState : StateMachineBehaviour
     protected float m_minStateInSeconds = 1f;
     [SerializeField]
     protected float m_maxStateInSeconds = 2f;
+    [SerializeField]
+    protected Color m_color = Color.white;
 
     protected NPC m_npc;
     protected float m_stateInSeconds;
@@ -20,6 +22,7 @@ public class BaseState : StateMachineBehaviour
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         m_npc = animator.GetComponent<NPC>();
+        m_npc.SetStateColor(m_color);
         m_stateInSeconds = Time.time + Random.Range(m_minStateInSeconds, m_maxStateInSeconds);
         m_ignoreUpdateAndWaitForExit = false;
     }
@@ -36,10 +39,16 @@ public class BaseState : StateMachineBehaviour
             var trigger = m_availableTriggers[Random.Range(0, m_availableTriggers.Length)];
             animator.SetTrigger(trigger);
             m_ignoreUpdateAndWaitForExit = true;
+            ExitCallback();
         }
     }
 
-    // OnStateExit is called when a transition ends and the state machine finishes evaluating this state
+    // Call this instead of on state exit because Unity is bugged. It calls the other state's enter before the last state's exit
+    virtual public void ExitCallback()
+    {
+    }
+
+    // Call this if you don't care about the order of exit
     override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
     }

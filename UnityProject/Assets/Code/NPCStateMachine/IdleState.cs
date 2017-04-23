@@ -10,5 +10,7 @@ public class IdleState : BaseState
         m_availableTriggers = new string[]{
             "Walk",
             "ChangeDirection" };
+
+        m_npc.Idle();
     }
 }

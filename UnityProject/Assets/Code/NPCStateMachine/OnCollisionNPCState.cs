@@ -11,4 +11,10 @@ public class OnCollisionNPCState : BaseState
         m_availableTriggers = new string[]{
             "ChangeDirection" };
     }
+
+    // OnStateExit is called when a transition ends and the state machine finishes evaluating this state
+    override public void ExitCallback()
+    {
+        m_npc.Stop();
+    }
 }

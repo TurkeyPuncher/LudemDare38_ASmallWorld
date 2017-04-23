@@ -36,6 +36,14 @@ public class NPC : MonoBehaviour
     [SerializeField]
     private float m_walkSpeed = 0.1f;
 
+    [SerializeField]
+    MeshRenderer m_stateColorMeshRenderer = null;
+
+    [SerializeField]
+    bool m_showStateFeedback = true;
+
+    [SerializeField]
+    Animator m_animator = null;
 
     public NPCFactory.Face FaceType { get; private set; }
     public NPCFactory.FaceColor FaceColorType { get; private set; }
@@ -53,11 +61,42 @@ public class NPC : MonoBehaviour
 
     private NPCFactory m_factory;
     private Animator m_aiStateMachine;
+    private string[] m_startStateNames = { "Walk", "Idle", "ChangeDirection" };
+    private bool m_inCollisionTrigger = false;
 
     void Start()
     {
         m_factory = NPCFactory.Instance;
         m_aiStateMachine = GetComponent<Animator>();
+        // Pick a random state
+        m_aiStateMachine.Play(m_startStateNames[Random.Range(0, m_startStateNames.Length)]);
+
+        m_stateColorMeshRenderer.enabled = m_showStateFeedback;
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        Stop();
+        if (m_inCollisionTrigger)
+            return;
+
+        m_inCollisionTrigger = true;
+        // Check what we hit
+        if (other.gameObject.CompareTag("NPC"))
+        {
+            MoveAway(transform.position - other.transform.position);
+            m_aiStateMachine.SetTrigger("OnCollisionNPC");
+        }
+        else if (other.gameObject.CompareTag("Environment"))
+        {
+            MoveAway(transform.position - other.transform.position);
+            m_aiStateMachine.SetTrigger("OnCollisionNPC");
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        m_inCollisionTrigger = false;
     }
 
     public void SetTraitsAndLook(NPCFactory.Face face, Sprite faceSprite,
@@ -103,26 +142,29 @@ public class NPC : MonoBehaviour
 
         m_glassesImage.enabled = (hasGlasses) ? true : false;
     }
-    
+
     public IEnumerator ChangeDirectionRoutine(float timeToChange)
     {
-        var randomAngle = Random.Range(-180f, 180f);
-
+        // making sure we turn around completely
+        var randomAngle = Random.Range(-90f, 90f) + 180f;
+        //randomAngle = randomAngle + ((randomAngle > 0) ? 180f : -180f);
+        
         var deltaTime = 0.0;
         while (deltaTime < timeToChange)
         {
-            deltaTime += Time.deltaTime;
-            m_npcTransform.transform.RotateAround(Vector3.zero, m_npcTransform.transform.forward, randomAngle * Time.deltaTime / timeToChange);
-            yield return new WaitForEndOfFrame();
+            deltaTime += Time.fixedDeltaTime;
+            m_npcTransform.transform.RotateAround(Vector3.zero, m_npcTransform.transform.forward, randomAngle * Time.fixedDeltaTime / timeToChange);
+            yield return new WaitForFixedUpdate();
         }
 
     }
 
     public void ChangeDirection(float timeInSeconds)
     {
+        Stop();
         StartCoroutine(ChangeDirectionRoutine(timeInSeconds));
-    }   
-    
+    }
+
     public IEnumerator WalkCoroutine()
     {
         while (true)
@@ -134,22 +176,45 @@ public class NPC : MonoBehaviour
 
     public void Walk()
     {
-        StopAllCoroutines();
+        Stop();
         StartCoroutine(WalkCoroutine());
+        m_animator.SetTrigger("Walk");
+    }
+    
+    public void Idle()
+    {
+        m_animator.Play("Idle");
+    }
+
+    public IEnumerator MoveAwayCoroutine(Vector3 direction)
+    {
+        m_npcTransform.transform.LookAt(transform, direction);
+        while (true)
+        {
+            m_npcTransform.transform.RotateAround(Vector3.zero, m_npcTransform.transform.right, -m_walkSpeed*3f);
+            yield return new WaitForEndOfFrame();
+        }
+    }
+
+    public void MoveAway(Vector3 direction)
+    {
+        Stop();
+        StartCoroutine(MoveAwayCoroutine(direction));
+    }
+
+    public void Attack()
+    {
+        m_animator.SetTrigger("Attack");
     }
 
     public void Stop()
     {
+        m_animator.SetTrigger("Stop");
         StopAllCoroutines();
     }
 
-    public void OnCollisionEnter(Collision collision)
+    public void SetStateColor(Color color)
     {
-        // Check if 
-        if(collision.gameObject.CompareTag("NPC"))
-            m_aiStateMachine.SetTrigger("OnCollisionNPC");
-        else if(collision.gameObject.CompareTag("Floor")||
-            collision.gameObject.CompareTag("Environment"))
-            m_aiStateMachine.SetTrigger("OnCollisionNPC");
+        m_stateColorMeshRenderer.material.color = color;
     }
 }
