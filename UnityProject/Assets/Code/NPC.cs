@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System;
 using System.Collections;
+using System.Collections.Generic;
 
 public class NPC : MonoBehaviour
 {
@@ -18,6 +20,9 @@ public class NPC : MonoBehaviour
     private Image m_eyesImage;
 
     [SerializeField]
+    private Image m_eyelashesImage;
+
+    [SerializeField]
     private Image m_glassesImage;
 
     [SerializeField]
@@ -27,7 +32,16 @@ public class NPC : MonoBehaviour
     private Image m_hairImage;
 
     [SerializeField]
+    private Image m_femaleHairImage;
+
+    [SerializeField]
     private Image m_earImage;
+
+    [SerializeField]
+    private Image m_leftHandImage;
+
+    [SerializeField]
+    private Image m_rightHandImage;
 
     [Header("Movement")]
     [SerializeField]
@@ -57,6 +71,11 @@ public class NPC : MonoBehaviour
     public NPCFactory.Ears EarType { get; private set; }
     public bool HasGlasses { get; private set; }
 
+    public bool IsFemale { get; private set; }
+    public NPCFactory.FemaleHair FemaleHairType { get; private set; }
+    public NPCFactory.Eyelashes EyelashesType { get; private set; }
+
+    public List<string> Traits = new List<string>();
     public Transform NPCTransform { get { return m_npcTransform; } }
 
     private NPCFactory m_factory;
@@ -69,7 +88,7 @@ public class NPC : MonoBehaviour
         m_factory = NPCFactory.Instance;
         m_aiStateMachine = GetComponent<Animator>();
         // Pick a random state
-        m_aiStateMachine.Play(m_startStateNames[Random.Range(0, m_startStateNames.Length)]);
+        m_aiStateMachine.Play(m_startStateNames[UnityEngine.Random.Range(0, m_startStateNames.Length)]);
 
         m_stateColorMeshRenderer.enabled = m_showStateFeedback;
     }
@@ -104,23 +123,32 @@ public class NPC : MonoBehaviour
         NPCFactory.Mouth mouth, Sprite mouthSprite,
         NPCFactory.Nose nose, Sprite noseSprite,
         NPCFactory.Eyes eyes, Sprite eyesSprite,
+        NPCFactory.Eyelashes eyelashes, Sprite eyeslashesSprite,
         NPCFactory.Glasses glasses, Sprite glassesSprite,
         NPCFactory.Brow brow, Sprite browSprite,
         NPCFactory.Hair hair, Sprite hairSprite,
+        NPCFactory.FemaleHair femaleHair, Sprite femaleHairSprite,
         NPCFactory.HairColor hairColor, Color hairColorColor,
         NPCFactory.Ears ear, Sprite earSprite,
-        bool hasGlasses)
+        bool hasGlasses,
+        bool isFemale)
     {
         FaceType = face;
+        Traits.Add(string.Format("{0}:{1}", face.GetType().Name, face));
         MouthType = mouth;
+        Traits.Add(string.Format("{0}:{1}", mouth.GetType().Name, mouth));
         NoseType = nose;
+        Traits.Add(string.Format("{0}:{1}", nose.GetType().Name, nose));
         EyesType = eyes;
-        GlassesType = glasses;
+        Traits.Add(string.Format("{0}:{1}", eyes.GetType().Name, eyes));
         BrowType = brow;
+        Traits.Add(string.Format("{0}:{1}", brow.GetType().Name, brow));
         HairType = hair;
+        Traits.Add(string.Format("{0}:{1}", hair.GetType().Name, hair));
         EarType = ear;
-        HasGlasses = hasGlasses;
+        Traits.Add(string.Format("{0}:{1}", ear.GetType().Name, ear));
 
+        
         m_faceImage.sprite = faceSprite;
         m_faceImage.color = faceColorColor;
         m_mouthImage.sprite = mouthSprite;
@@ -129,8 +157,6 @@ public class NPC : MonoBehaviour
         m_noseImage.color = faceColorColor;
         m_eyesImage.sprite = eyesSprite;
         m_eyesImage.color = faceColorColor;
-        m_glassesImage.sprite = glassesSprite;
-        m_glassesImage.color = faceColorColor;
         m_browImage.sprite = browSprite;
         m_browImage.color = faceColorColor;
 
@@ -140,7 +166,46 @@ public class NPC : MonoBehaviour
         m_earImage.sprite = earSprite;
         m_earImage.color = faceColorColor;
 
-        m_glassesImage.enabled = (hasGlasses) ? true : false;
+        m_leftHandImage.color = hairColorColor + Color.red + Color.black;
+        m_rightHandImage.color = faceColorColor + Color.red;
+
+        // Has glasses
+        HasGlasses = hasGlasses;
+        if (hasGlasses)
+        {
+            GlassesType = glasses;
+            Traits.Add(string.Format("{0}_{1}", glasses.GetType().Name, glasses));
+
+            m_glassesImage.sprite = glassesSprite;
+            m_glassesImage.color = faceColorColor;
+            m_glassesImage.enabled = true;
+        }
+        else
+        {
+            m_glassesImage.enabled = false;
+        }
+
+        // Is female
+        IsFemale = isFemale;
+        if (isFemale)
+        {
+            FemaleHairType = femaleHair;
+            Traits.Add(string.Format("{0}:{1}", femaleHair.GetType().Name, femaleHair));
+            EyelashesType = eyelashes;
+            Traits.Add(string.Format("{0}:{1}", eyelashes.GetType().Name, eyelashes));
+            
+            m_femaleHairImage.enabled = true;
+            m_femaleHairImage.sprite = femaleHairSprite;
+            m_femaleHairImage.color = hairColorColor;
+            m_eyelashesImage.enabled = true;
+            m_eyelashesImage.sprite = eyeslashesSprite;
+            m_eyelashesImage.color = faceColorColor;
+        }
+        else
+        {
+            m_femaleHairImage.enabled = false;
+            m_eyelashesImage.enabled = false;
+        }
 
         GameManager.Instance.AddPopulation();
     }
@@ -148,9 +213,9 @@ public class NPC : MonoBehaviour
     public IEnumerator ChangeDirectionRoutine(float timeToChange)
     {
         // making sure we turn around completely
-        var randomAngle = Random.Range(-90f, 90f) + 180f;
+        var randomAngle = UnityEngine.Random.Range(-90f, 90f) + 180f;
         //randomAngle = randomAngle + ((randomAngle > 0) ? 180f : -180f);
-        
+
         var deltaTime = 0.0;
         while (deltaTime < timeToChange)
         {
@@ -182,7 +247,7 @@ public class NPC : MonoBehaviour
         StartCoroutine(WalkCoroutine());
         m_animator.SetTrigger("Walk");
     }
-    
+
     public void Idle()
     {
         m_animator.Play("Idle");
@@ -193,7 +258,7 @@ public class NPC : MonoBehaviour
         m_npcTransform.transform.LookAt(transform, direction);
         while (true)
         {
-            m_npcTransform.transform.RotateAround(Vector3.zero, m_npcTransform.transform.right, -m_walkSpeed*3f);
+            m_npcTransform.transform.RotateAround(Vector3.zero, m_npcTransform.transform.right, -m_walkSpeed * 3f);
             yield return new WaitForEndOfFrame();
         }
     }
@@ -219,7 +284,7 @@ public class NPC : MonoBehaviour
     {
         m_stateColorMeshRenderer.material.color = color;
     }
-    
+
     public void Dead()
     {
         GameManager.Instance.RemovePopulation();

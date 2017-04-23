@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private PopulationCounter m_populationCounter = null;
-
+    
     private static GameManager m_instance;
     public static GameManager Instance
     {

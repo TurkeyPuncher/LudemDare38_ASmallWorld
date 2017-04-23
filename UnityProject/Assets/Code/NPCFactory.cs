@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class NPCFactory : MonoBehaviour
 {
@@ -23,6 +21,9 @@ public class NPCFactory : MonoBehaviour
     public Sprite[] m_eyesSprites = null;
 
     [SerializeField]
+    public Sprite[] m_femaleEyelashesSprites = null;
+
+    [SerializeField]
     public Sprite[] m_glassesSprites = null;
 
     [SerializeField]
@@ -32,6 +33,9 @@ public class NPCFactory : MonoBehaviour
     public Sprite[] m_hairSprites = null;
 
     [SerializeField]
+    public Sprite[] m_femaleHairSprites = null;
+
+    [SerializeField]
     public Color[] m_hairColor = null;
 
     [SerializeField]
@@ -39,8 +43,10 @@ public class NPCFactory : MonoBehaviour
 
     public enum Face : byte
     {
-        Regular,
-        Fat,
+        Potato,
+        Cabbage,
+        Turnip,
+        Rock,
     }
 
     public enum FaceColor : byte
@@ -64,8 +70,8 @@ public class NPCFactory : MonoBehaviour
 
     public enum Nose : byte
     {
-        Normal,
-        Big,
+        Square,
+        Pointy,
         Snout,
     }
 
@@ -75,6 +81,11 @@ public class NPCFactory : MonoBehaviour
         Asian,
         Disney,
         Droopy,
+    }
+
+    public enum Eyelashes : byte
+    {
+        Normal,
     }
 
     public enum Glasses : byte
@@ -98,6 +109,12 @@ public class NPCFactory : MonoBehaviour
         Curly,
     }
 
+    public enum FemaleHair : byte
+    {
+        Buns,
+        Long,
+    }
+
     public enum HairColor : byte
     {
         Black,
@@ -112,9 +129,8 @@ public class NPCFactory : MonoBehaviour
     public enum Ears : byte
     {
         Regular,
-        Fabio,
-        FlatTop,
-        Curly,
+        Elf,
+        Dumbo,
     }
 
     private static NPCFactory m_instance;
@@ -155,24 +171,32 @@ public class NPCFactory : MonoBehaviour
         int mouth = Random.Range(0, m_mouthSprites.Length);
         int nose = Random.Range(0, m_noseSprites.Length);
         int eyes = Random.Range(0, m_eyesSprites.Length);
-        int glasses = Random.Range(0, m_glassesSprites.Length);
-        bool hasGlasses = (Random.Range(0, 100) > 10) ? false : true;
         int brow = Random.Range(0, m_browSprites.Length);
         int hair = Random.Range(0, m_hairSprites.Length);
         int hairColor = Random.Range(0, m_hairColor.Length);
         int ear = Random.Range(0, m_earSprites.Length);
+
+        bool hasGlasses = (Random.Range(0, 100) > 10) ? false : true;
+        int glasses = Random.Range(0, m_glassesSprites.Length);
+
+        bool isFemale = (Random.Range(0, 100) > 50) ? false : true;
+        int femaleHair = Random.Range(0, m_femaleHairSprites.Length);
+        int eyelashes = Random.Range(0, m_femaleEyelashesSprites.Length);
 
         npc.SetTraitsAndLook((Face)face, m_faceSprites[face],
             (FaceColor)faceColor, m_faceColor[faceColor],
             (Mouth)mouth, m_mouthSprites[mouth],
             (Nose)nose, m_noseSprites[nose],
             (Eyes)eyes, m_eyesSprites[eyes],
+            (Eyelashes)eyelashes, m_femaleEyelashesSprites[eyelashes],
             (Glasses)glasses, m_glassesSprites[glasses],
             (Brow)brow, m_browSprites[brow],
             (Hair)hair, m_hairSprites[hair],
+            (FemaleHair)femaleHair, m_femaleHairSprites[femaleHair],
             (HairColor)hairColor, m_hairColor[hairColor],
             (Ears)ear, m_earSprites[ear],
-            hasGlasses
+            hasGlasses,
+            isFemale
             );
 
         // Convert position
