@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour {
-
+public class GameManager : MonoBehaviour
+{
+    [SerializeField]
+    private Camera m_mainCamera = null;
+    
     private static GameManager m_instance;
     public static GameManager Instance
     {
@@ -18,6 +21,8 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    public Camera MainCamera { get; private set; }
+
     void Awake()
     {
         // Instance
@@ -30,10 +35,13 @@ public class GameManager : MonoBehaviour {
         m_instance = this;
 
         // TODO Remove
-        for(int i=0; i<20; i++)
+        for (int i = 0; i < 20; i++)
         {
-            var spherePoint = Random.insideUnitSphere * 5; 
+            var spherePoint = Random.insideUnitSphere * 5;
             NPCFactory.Instance.CreateNPC(spherePoint);
         }
+
+        if (MainCamera == null)
+            MainCamera = Camera.main;
     }
 }

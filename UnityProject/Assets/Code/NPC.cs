@@ -142,4 +142,14 @@ public class NPC : MonoBehaviour
     {
         StopAllCoroutines();
     }
+
+    public void OnCollisionEnter(Collision collision)
+    {
+        // Check if 
+        if(collision.gameObject.CompareTag("NPC"))
+            m_aiStateMachine.SetTrigger("OnCollisionNPC");
+        else if(collision.gameObject.CompareTag("Floor")||
+            collision.gameObject.CompareTag("Environment"))
+            m_aiStateMachine.SetTrigger("OnCollisionNPC");
+    }
 }

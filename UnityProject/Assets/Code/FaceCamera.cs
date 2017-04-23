@@ -8,7 +8,7 @@ public class FaceCamera : MonoBehaviour
 
     void Start()
     {
-        m_mainCamera = Camera.main;
+        m_mainCamera = GameManager.Instance.MainCamera;
     }
 
     // Update is called once per frame
