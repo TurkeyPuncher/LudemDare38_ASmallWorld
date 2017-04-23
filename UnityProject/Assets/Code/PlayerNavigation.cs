@@ -8,8 +8,8 @@ public class PlayerNavigation : MonoBehaviour
     float m_speedScaleX = 60;
     [SerializeField]
     float m_speedScaleY = 100;
-    [SerializeField]
-    float m_speedScaleZ = 60;
+    //[SerializeField]
+    //float m_speedScaleZ = 60;
     [SerializeField]
     float m_dampen = 0.9f;
 
