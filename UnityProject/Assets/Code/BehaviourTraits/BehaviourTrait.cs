@@ -53,4 +53,11 @@ public class BehaviourTrait
     virtual public void GenerateMessage()
     {
     }
+
+    virtual public void ForceTraits(Trigger source, Trigger target)
+    {
+        m_sourceTrigger = source;
+        m_targetTrigger = target;
+        GenerateMessage();
+    }
 }

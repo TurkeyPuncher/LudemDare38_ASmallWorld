@@ -84,6 +84,9 @@ public class NPC : MonoBehaviour
     private AnimCurveScale m_babyScaler;
 
     [SerializeField]
+    private Rigidbody m_rigidBody;
+
+    [SerializeField]
     private List<string> m_debugTraits = new List<string>();
 
     public List<BehaviourTrait.Trigger> Traits { get { return m_traits; } }
@@ -124,6 +127,7 @@ public class NPC : MonoBehaviour
         m_mainCamera = GameManager.Instance.MainCamera;
         m_lastScreenPosition = m_mainCamera.WorldToScreenPoint(transform.position);
         m_collider = GetComponent<CapsuleCollider>();
+        m_rigidBody = GetComponent<Rigidbody>();
     }
 
     void OnTriggerEnter(Collider other)
@@ -332,10 +336,22 @@ public class NPC : MonoBehaviour
         StartCoroutine(MoveAwayCoroutine(direction));
     }
 
+
+    IEnumerator AttackRoutine(float timeInSeconds)
+    {
+        // Wait for animation
+        yield return new WaitForSeconds(timeInSeconds);
+
+        // Suicide
+        GameManager.Instance.Explode(this);
+    }
+
     public void Attack(float timeInSeconds)
     {
         Stop();
-        DisableColliderForTime(timeInSeconds);
+        DisableCollider();
+        DisableStateMachine();
+        StartCoroutine(AttackRoutine(timeInSeconds));
         m_animator.SetTrigger("Attack");
     }
 
@@ -459,11 +475,8 @@ public class NPC : MonoBehaviour
         }
         else if (HasHateFor(otherNPC))
         {
-            otherNPC.ForceAttack();
+            otherNPC.Stop();
             m_aiStateMachine.SetTrigger("Attack");
-
-            // Tell Game Manager to kill both NPCs
-            //GameManager.Instance.Explode(this);
         }
         else
         {
@@ -472,16 +485,10 @@ public class NPC : MonoBehaviour
         }
     }
 
-    // called by other npcs
+    // called by other NPCs
     public void ForceLove()
     {
         m_aiStateMachine.SetTrigger("Love");
-    }
-
-    // called by other npcs
-    public void ForceAttack()
-    {
-        m_aiStateMachine.SetTrigger("Attack");
     }
 
     public void DisableColliderForTime(float timeInSeconds)
@@ -490,9 +497,36 @@ public class NPC : MonoBehaviour
         m_collider.enabled = false;
         Invoke("EnableCollider", timeInSeconds);
     }
+    
+    public void DisableCollider()
+    {
+        m_collider = GetComponent<CapsuleCollider>();
+        m_collider.enabled = false;
+    }
+    
+    public void DisableStateMachine()
+    {
+        m_aiStateMachine.enabled = false;
+    }
 
     public void EnableCollider()
     {
         m_collider.enabled = true;
+    }
+
+    IEnumerator DieByExplosionRoutine(Vector3 force)
+    {
+        Stop();
+        DisableCollider();
+        DisableStateMachine();
+        m_rigidBody.AddForce(force);
+        m_animator.Play("Dead");
+        
+        yield return new WaitForEndOfFrame();
+    }
+
+    public void DieByExplosion(Vector3 force)
+    {
+        StartCoroutine(DieByExplosionRoutine(force));
     }
 }

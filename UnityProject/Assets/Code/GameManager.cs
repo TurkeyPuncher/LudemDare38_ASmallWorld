@@ -9,6 +9,8 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private int m_startPopulation = 10;
+    [SerializeField]
+    private float m_populationRate = 0.2f;
 
     [SerializeField]
     private int m_breedMin = 2;
@@ -18,6 +20,11 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private float m_breedRate = 0.5f;
+
+    [SerializeField]
+    private float m_explosionRadius = 2.0f;
+    [SerializeField]
+    private float m_explosionForce = 30.0f;
 
     [SerializeField]
     private PopulationCounter m_populationCounter = null;
@@ -64,7 +71,8 @@ public class GameManager : MonoBehaviour
         if (m_mainCamera == null)
             m_mainCamera = Camera.main;
 
-        StartCoroutine(StartRoutine(m_startPopulation, 0f));
+        StartCoroutine(StartRoutine(m_startPopulation, m_populationRate));
+        StartCoroutine(StartBehavioursRoutine());
     }
 
     void Update()
@@ -85,29 +93,31 @@ public class GameManager : MonoBehaviour
             NPCFactory.Instance.CreateNPC(spherePoint);
             yield return new WaitForSeconds(timeInSeconds);
         }
+        GenerateBehaviors();
+    }
 
-        // Create starting behaviours
-        //GenerateBehaviors();
-        yield return new WaitForSeconds(1f);
-        // Create starting behaviours
-        GenerateTestBehaviors();
-        yield return new WaitForSeconds(1f);
-        // Create starting behaviours
+    IEnumerator StartBehavioursRoutine()
+    { 
+        for (int j = 0; j < 4; j++)
+        {
+            // Create starting behaviours
+            GenerateBehaviors();
+            yield return new WaitForSeconds(1f);
+        }
     }
 
     void GenerateTestBehaviors()
     {
-        var love = new LoveBehaviourTrait();
-        love.Source = BehaviourTrait.Trigger.Blue_FaceColor;
-        love.Target = BehaviourTrait.Trigger.Green_FaceColor;
-        m_loveBehaviours.Add(love);
+        var hate = new HateBehaviourTrait();
+        hate.ForceTraits(BehaviourTrait.Trigger.Blue_FaceColor, BehaviourTrait.Trigger.Green_FaceColor);
+        m_hateBehaviours.Add(hate);
 
-        m_loveHateMessages.AddLove(love.TraitMessage);
+        m_loveHateMessages.AddHate(hate.TraitMessage);
 
         var npcs = NPCFactory.Instance.GetComponentsInChildren<NPC>();
         foreach (var n in npcs)
         {
-            n.AddLove(love);
+            n.AddHate(hate);
         }
     }
 
@@ -134,7 +144,7 @@ public class GameManager : MonoBehaviour
         foreach (var love in m_loveBehaviours)
             npc.AddLove(love);
         foreach (var hate in m_hateBehaviours)
-            npc.AddLove(hate);
+            npc.AddHate(hate);
 
         Population++;
         m_populationCounter.SetPopulation(Population);
@@ -190,6 +200,33 @@ public class GameManager : MonoBehaviour
     {
         var amount = Random.Range(m_breedMin, m_breedMax);
         StartCoroutine(BreedRoutine(source, target, amount));
+    }
+
+    IEnumerator ExplodeRoutine()
+    {
+        yield return new WaitForEndOfFrame();
+    }
+
+    public void Explode(NPC source)
+    {
+        var center = source.transform.position - source.transform.position.normalized;
+        source.DieByExplosion(source.transform.position.normalized * m_explosionForce);
+        RemovePopulation();
+
+        Collider[] hitColliders = Physics.OverlapSphere(source.transform.position, m_explosionRadius);
+        for (int i=0; i < hitColliders.Length; i++)
+        {
+            if(hitColliders[i].CompareTag("NPC"))
+            {
+                var npc = hitColliders[i].GetComponent<NPC>();
+                var directionVector = (npc.transform.position - center).normalized;
+                var mag = directionVector.magnitude / m_explosionRadius;
+                var forceVector = directionVector * m_explosionForce * mag;
+                npc.DieByExplosion(forceVector);
+                RemovePopulation();
+            }
+        }
+        StartCoroutine(ExplodeRoutine());
     }
 }
 

@@ -12,9 +12,4 @@ public class AfterEventState : BaseState
             "Walk", "Idle", "ChangeDirection" };
     }
     
-    // OnStateExit is called when a transition ends and the state machine finishes evaluating this state
-    override public void ExitCallback()
-    {
-        m_npc.Stop();
-    }
 }

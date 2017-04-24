@@ -22,4 +22,5 @@ public class HateBehaviourTrait : BehaviourTrait
         var targetString = m_targetTrigger.ToString().Replace("_", " ");
         m_traitMessage = string.Format("{0} Hates {1}", sourceString, targetString);
     }
+
 }

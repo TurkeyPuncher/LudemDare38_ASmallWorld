@@ -10,7 +10,7 @@ public class AttackState : BaseState
         m_availableTriggers = new string[]{
             "AfterEvent"};
 
-        m_npc.Attack(m_stateInSeconds);
+        m_npc.Attack(m_minStateInSeconds);
     }
     
     // OnStateExit is called when a transition ends and the state machine finishes evaluating this state

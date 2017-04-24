@@ -240,7 +240,7 @@ public class NPCFactory : MonoBehaviour
             (Ears)ear, m_earSprites[ear],
             hasGlasses,
             isFemale,
-            false);
+            true);
 
         // Convert position
         npc.NPCTransform.LookAt(position);
