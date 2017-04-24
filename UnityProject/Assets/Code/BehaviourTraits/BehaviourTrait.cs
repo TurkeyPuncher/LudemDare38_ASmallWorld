@@ -41,6 +41,7 @@ public class BehaviourTrait
 
     public Trigger Source { get { return m_sourceTrigger; } }
     public Trigger Target { get { return m_targetTrigger; } }
+    public string TraitMessage { get { return m_traitMessage; } }
 
     public Trigger RandomTrigger()
     {

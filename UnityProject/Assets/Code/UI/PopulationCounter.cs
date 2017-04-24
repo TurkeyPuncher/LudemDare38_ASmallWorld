@@ -9,17 +9,17 @@ public class PopulationCounter : MonoBehaviour
     Text m_text = null;
 
     [SerializeField]
-    BounceScale m_bounceScale = null;
+    AnimCurveScale m_curveScale = null;
 
     void Awake()
     {
         m_text = GetComponent<Text>();
-        m_bounceScale = GetComponent<BounceScale>();
+        m_curveScale = GetComponent<AnimCurveScale>();
     }
 
     public void SetPopulation(float value)
     {
         m_text.text = value.ToString();
-        m_bounceScale.Bounce();
+        m_curveScale.DoAnim();
     }
 }

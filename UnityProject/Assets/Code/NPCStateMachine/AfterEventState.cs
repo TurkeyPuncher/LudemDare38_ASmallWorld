@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class OnCollisionNPCState : BaseState
+public class AfterEventState : BaseState
 {
     // Called by NPC when collision occurs
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         base.OnStateEnter(animator, stateInfo, layerIndex);
         m_availableTriggers = new string[]{
-            "ChangeDirection" };
+            "Walk", "Idle", "ChangeDirection" };
     }
-
+    
     // OnStateExit is called when a transition ends and the state machine finishes evaluating this state
     override public void ExitCallback()
     {

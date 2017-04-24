@@ -12,13 +12,17 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private PopulationCounter m_populationCounter = null;
-
+    
+    
     // Behaviour
     [SerializeField]
     List<LoveBehaviourTrait> m_loveBehaviours = new List<LoveBehaviourTrait>();
 
     [SerializeField]
     List<HateBehaviourTrait> m_hateBehaviours = new List<HateBehaviourTrait>();
+
+    [SerializeField]
+    private LoveHateMessages m_loveHateMessages = null;
 
     private static GameManager m_instance;
     public static GameManager Instance
@@ -75,10 +79,13 @@ public class GameManager : MonoBehaviour
 
         // Create starting behaviours
         GenerateBehaviors();
+        yield return new WaitForSeconds(1f);
         // Create starting behaviours
         GenerateBehaviors();
+        yield return new WaitForSeconds(1f);
         // Create starting behaviours
         GenerateBehaviors();
+        yield return new WaitForSeconds(1f);
         // Create starting behaviours
         GenerateBehaviors();
     }
@@ -89,6 +96,9 @@ public class GameManager : MonoBehaviour
         var hate = new HateBehaviourTrait();
         m_loveBehaviours.Add(love);
         m_hateBehaviours.Add(hate);
+
+        m_loveHateMessages.AddLove(love.TraitMessage);
+        m_loveHateMessages.AddHate(hate.TraitMessage);
 
         var npcs = NPCFactory.Instance.GetComponentsInChildren<NPC>();
         foreach (var n in npcs)

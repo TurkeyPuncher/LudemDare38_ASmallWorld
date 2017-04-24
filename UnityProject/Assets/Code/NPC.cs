@@ -63,11 +63,25 @@ public class NPC : MonoBehaviour
     Animator m_animator = null;
 
     [SerializeField]
-    List<BehaviourTrait.Trigger> m_loveBehaviours = new List<BehaviourTrait.Trigger>();
+    Transform m_loveGroup = null;
 
     [SerializeField]
-    List<BehaviourTrait.Trigger> m_hateBehaviours = new List<BehaviourTrait.Trigger>();
+    GameObject m_lovePrefab = null;
 
+    [SerializeField]
+    List<BehaviourTrait.Trigger> m_loveTraits = new List<BehaviourTrait.Trigger>();
+
+    [SerializeField]
+    List<BehaviourTrait.Trigger> m_hateTraits = new List<BehaviourTrait.Trigger>();
+    
+    [SerializeField]
+    public List<BehaviourTrait.Trigger> m_traits = new List<BehaviourTrait.Trigger>();
+    
+    [SerializeField]
+    private List<string> m_debugTraits = new List<string>();
+
+    public List<BehaviourTrait.Trigger> Traits { get { return m_traits; } }
+    
     public NPCFactory.Face FaceType { get; private set; }
     public NPCFactory.FaceColor FaceColorType { get; private set; }
     public NPCFactory.Mouth MouthType { get; private set; }
@@ -85,26 +99,19 @@ public class NPC : MonoBehaviour
     public NPCFactory.Eyelashes EyelashesType { get; private set; }
 
     public Transform NPCTransform { get { return m_npcTransform; } }
+
+    public Collider CollidedWith { get; private set; }
     
     private Animator m_aiStateMachine;
-    private string[] m_startStateNames = { "Walk", "Idle", "ChangeDirection" };
     private bool m_inCollisionTrigger = false;
 
     private Camera m_mainCamera;
     private Vector3 m_lastScreenPosition;
-
-    [SerializeField]
-    public List<BehaviourTrait.Trigger> m_traits = new List<BehaviourTrait.Trigger>();
-    public List<BehaviourTrait.Trigger> Traits { get { return m_traits; } }
-
-    [SerializeField]
-    private List<string> m_debugTraits = new List<string>();
+        
 
     void Start()
     {
         m_aiStateMachine = GetComponent<Animator>();
-        // Pick a random state
-        m_aiStateMachine.Play(m_startStateNames[UnityEngine.Random.Range(0, m_startStateNames.Length)]);
 
         m_stateColorMeshRenderer.enabled = m_showStateFeedback;
         m_mainCamera = GameManager.Instance.MainCamera;
@@ -114,6 +121,7 @@ public class NPC : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         Stop();
+        CollidedWith = other;
         if (m_inCollisionTrigger)
             return;
 
@@ -121,16 +129,15 @@ public class NPC : MonoBehaviour
         // Check what we hit
         if (other.gameObject.CompareTag("NPC"))
         {
-            MoveAway(transform.position - other.transform.position);
-            m_aiStateMachine.SetTrigger("OnCollisionNPC");
+            HandleOtherNPC(other.GetComponent<NPC>());
         }
         else if (other.gameObject.CompareTag("Environment"))
         {
             MoveAway(transform.position - other.transform.position);
-            m_aiStateMachine.SetTrigger("OnCollisionNPC");
+            m_aiStateMachine.SetTrigger("AfterEvent");
         }
     }
-
+    
     void OnTriggerExit(Collider other)
     {
         m_inCollisionTrigger = false;
@@ -311,6 +318,24 @@ public class NPC : MonoBehaviour
         m_animator.SetTrigger("Attack");
     }
 
+    IEnumerator MakeLoveRoutine(float timeInSeconds)
+    {
+        float deltaTime = 0f;
+        while (deltaTime < timeInSeconds)
+        {
+            deltaTime += Time.deltaTime;
+            Instantiate(m_lovePrefab, m_loveGroup, false);
+            yield return new WaitForSeconds(1f);
+        }
+    }
+
+    public void MakeLove(float timeInSeconds)
+    {
+        m_animator.SetTrigger("Love");
+        StartCoroutine(MakeLoveRoutine(timeInSeconds));
+    }
+
+
     public void Stop()
     {
         m_animator.SetTrigger("Stop");
@@ -336,19 +361,19 @@ public class NPC : MonoBehaviour
 
     public void SetMood()
     {
-        if (m_loveBehaviours.Count > m_hateBehaviours.Count)
+        if (m_loveTraits.Count > m_hateTraits.Count)
         {
             m_mouthImage.sprite = NPCFactory.Instance.m_mouthSprites[(int)NPCFactory.Mouth.Happy];
         }
-        else if (m_loveBehaviours.Count + 2 < m_hateBehaviours.Count)
+        else if (m_loveTraits.Count + 2 < m_hateTraits.Count)
         {
             m_mouthImage.sprite = NPCFactory.Instance.m_mouthSprites[(int)NPCFactory.Mouth.Angry];
         }
-        else if (m_loveBehaviours.Count < m_hateBehaviours.Count)
+        else if (m_loveTraits.Count < m_hateTraits.Count)
         {
             m_mouthImage.sprite = NPCFactory.Instance.m_mouthSprites[(int)NPCFactory.Mouth.Sad];
         }
-        else if (m_loveBehaviours.Count == m_hateBehaviours.Count)
+        else if (m_loveTraits.Count == m_hateTraits.Count)
         {
             m_mouthImage.sprite = NPCFactory.Instance.m_mouthSprites[(int)NPCFactory.Mouth.Neutral];
         }
@@ -358,9 +383,9 @@ public class NPC : MonoBehaviour
     {
         if (m_traits.Contains(love.Source))
         {
-            if(!m_loveBehaviours.Contains(love.Target))
+            if(!m_loveTraits.Contains(love.Target))
             { 
-                m_loveBehaviours.Add(love.Target);
+                m_loveTraits.Add(love.Target);
                 SetMood();
             }
         }
@@ -369,11 +394,49 @@ public class NPC : MonoBehaviour
     {
         if (m_traits.Contains(hate.Source))
         {
-            if (!m_hateBehaviours.Contains(hate.Target))
+            if (!m_hateTraits.Contains(hate.Target))
             {
-                m_hateBehaviours.Add(hate.Target);
+                m_hateTraits.Add(hate.Target);
                 SetMood();
             }
+        }
+    }
+
+    public bool HasLoveFor(NPC other)
+    {
+        // Love only works on opposite gender
+        if (IsFemale == other.IsFemale)
+            return false;
+
+        foreach (var traits in other.Traits)
+            if (m_loveTraits.Contains(traits))
+                return true;
+        return false;
+    }
+    
+    public bool HasHateFor(NPC other)
+    {
+        foreach (var traits in other.Traits)
+            if (m_hateTraits.Contains(traits))
+                return true;
+        return false;
+    }
+
+    // Called on trigger if collider is an NPC
+    public void HandleOtherNPC(NPC otherNPC)
+    {
+        if (HasLoveFor(otherNPC))
+        {
+            m_animator.SetTrigger("Love");
+        }
+        else if (HasHateFor(otherNPC))
+        {
+            m_animator.SetTrigger("Attack");
+        }
+        else
+        {
+            MoveAway(transform.position - otherNPC.transform.position);
+            m_aiStateMachine.SetTrigger("AfterEvent");
         }
     }
 }
