@@ -39,8 +39,8 @@ public class BehaviourTrait
         _Count,
     }
 
-    public Trigger Source { get { return m_sourceTrigger; } }
-    public Trigger Target { get { return m_targetTrigger; } }
+    public Trigger Source { get { return m_sourceTrigger; } set { m_sourceTrigger = value; } }
+    public Trigger Target { get { return m_targetTrigger; } set { m_targetTrigger = value; } }
     public string TraitMessage { get { return m_traitMessage; } }
 
     public Trigger RandomTrigger()

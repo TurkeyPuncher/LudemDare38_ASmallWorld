@@ -11,7 +11,7 @@ public class AnimCurveScale : MonoBehaviour
     private Vector3 m_relativeScale = Vector3.one;
 
     [SerializeField]
-    private float m_duration = 2f;
+    public float m_duration = 2f;
 
     [SerializeField]
     private AnimationCurve m_animCurve = null;

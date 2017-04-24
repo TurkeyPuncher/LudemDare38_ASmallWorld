@@ -8,10 +8,9 @@ public class AttackState : BaseState
     {
         base.OnStateEnter(animator, stateInfo, layerIndex);
         m_availableTriggers = new string[]{
-            "Walk",
-            "ChangeDirection" };
+            "AfterEvent"};
 
-        m_npc.Attack();
+        m_npc.Attack(m_stateInSeconds);
     }
     
     // OnStateExit is called when a transition ends and the state machine finishes evaluating this state

@@ -159,7 +159,50 @@ public class NPCFactory : MonoBehaviour
         m_instance = this;
     }
 
-    public GameObject CreateNPC(Vector3 position)
+    public NPC CreateNPC(Vector3 position,
+        NPCFactory.Face face, 
+        NPCFactory.FaceColor faceColor, 
+        NPCFactory.Mouth mouth, 
+        NPCFactory.Nose nose, 
+        NPCFactory.Eyes eyes, 
+        NPCFactory.Eyelashes eyelashes, 
+        NPCFactory.Glasses glasses, 
+        NPCFactory.Eyebrows eyebrows,
+        NPCFactory.Hair hair, 
+        NPCFactory.FemaleHair femaleHair, 
+        NPCFactory.HairColor hairColor, 
+        NPCFactory.Ears ears, 
+        bool hasGlasses,
+        bool isFemale,
+        bool isBaby)
+    {
+        // Instantiate
+        var go = Instantiate(m_npcPrefab, transform, false) as GameObject;
+        NPC npc = go.GetComponentInChildren<NPC>();
+
+        npc.SetTraitsAndLook(
+            face, NPCFactory.Instance.m_faceSprites[(int)face],
+            faceColor, NPCFactory.Instance.m_faceColor[(int)faceColor],
+            mouth, NPCFactory.Instance.m_mouthSprites[(int)mouth],
+            nose, NPCFactory.Instance.m_noseSprites[(int)nose],
+            eyes, NPCFactory.Instance.m_eyesSprites[(int)eyes],
+            0, NPCFactory.Instance.m_femaleEyelashesSprites[0],
+            0, NPCFactory.Instance.m_glassesSprites[0],
+            eyebrows, NPCFactory.Instance.m_browSprites[(int)eyebrows],
+            hair, NPCFactory.Instance.m_hairSprites[(int)hair],
+            0, NPCFactory.Instance.m_femaleHairSprites[0],
+            hairColor, NPCFactory.Instance.m_hairColor[(int)hairColor],
+            ears, NPCFactory.Instance.m_earSprites[(int)ears],
+            hasGlasses,
+            isFemale,
+            isBaby);
+
+        // Convert position
+        npc.NPCTransform.LookAt(position);
+        return npc;
+    }
+
+    public NPC CreateNPC(Vector3 position)
     {
         // Instantiate
         var go = Instantiate(m_npcPrefab, transform, false) as GameObject;
@@ -196,11 +239,11 @@ public class NPCFactory : MonoBehaviour
             (HairColor)hairColor, m_hairColor[hairColor],
             (Ears)ear, m_earSprites[ear],
             hasGlasses,
-            isFemale
-            );
+            isFemale,
+            false);
 
         // Convert position
         npc.NPCTransform.LookAt(position);
-        return null;
+        return npc;
     }
 }

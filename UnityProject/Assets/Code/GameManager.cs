@@ -11,6 +11,15 @@ public class GameManager : MonoBehaviour
     private int m_startPopulation = 10;
 
     [SerializeField]
+    private int m_breedMin = 2;
+
+    [SerializeField]
+    private int m_breedMax = 10;
+
+    [SerializeField]
+    private float m_breedRate = 0.5f;
+
+    [SerializeField]
     private PopulationCounter m_populationCounter = null;
     
     
@@ -78,16 +87,28 @@ public class GameManager : MonoBehaviour
         }
 
         // Create starting behaviours
-        GenerateBehaviors();
+        //GenerateBehaviors();
         yield return new WaitForSeconds(1f);
         // Create starting behaviours
-        GenerateBehaviors();
+        GenerateTestBehaviors();
         yield return new WaitForSeconds(1f);
         // Create starting behaviours
-        GenerateBehaviors();
-        yield return new WaitForSeconds(1f);
-        // Create starting behaviours
-        GenerateBehaviors();
+    }
+
+    void GenerateTestBehaviors()
+    {
+        var love = new LoveBehaviourTrait();
+        love.Source = BehaviourTrait.Trigger.Blue_FaceColor;
+        love.Target = BehaviourTrait.Trigger.Green_FaceColor;
+        m_loveBehaviours.Add(love);
+
+        m_loveHateMessages.AddLove(love.TraitMessage);
+
+        var npcs = NPCFactory.Instance.GetComponentsInChildren<NPC>();
+        foreach (var n in npcs)
+        {
+            n.AddLove(love);
+        }
     }
 
     void GenerateBehaviors()
@@ -124,4 +145,51 @@ public class GameManager : MonoBehaviour
         Population--;
         m_populationCounter.SetPopulation(Population);
     }
+
+    IEnumerator BreedRoutine(NPC source, NPC target, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            NPCFactory.Face face = (Random.Range(0f, 1f) > 0.5f) ? source.FaceType : target.FaceType;
+            NPCFactory.FaceColor faceColor = (Random.Range(0f, 1f) > 0.5f) ? source.FaceColorType : target.FaceColorType;
+            NPCFactory.Mouth mouth = (Random.Range(0f, 1f) > 0.5f) ? source.MouthType : target.MouthType;
+            NPCFactory.Nose nose = (Random.Range(0f, 1f) > 0.5f) ? source.NoseType : target.NoseType;
+            NPCFactory.Eyes eyes = (Random.Range(0f, 1f) > 0.5f) ? source.EyesType : target.EyesType;
+            NPCFactory.Eyebrows eyebrows = (Random.Range(0f, 1f) > 0.5f) ? source.BrowType : target.BrowType;
+            NPCFactory.Hair hair = (Random.Range(0f, 1f) > 0.5f) ? source.HairType : target.HairType;
+            NPCFactory.HairColor hairColor = (Random.Range(0f, 1f) > 0.5f) ? source.HairColorType : target.HairColorType;
+            NPCFactory.Ears ears = (Random.Range(0f, 1f) > 0.5f) ? source.EarType : target.EarType;
+            bool hasGlasses = (Random.Range(0f, 1f) > 0.5f) ? source.HasGlasses : target.HasGlasses;
+            bool isFemale = (Random.Range(0f, 1f) > 0.5f) ? false : true;
+
+            var distanceVector = source.transform.position - target.transform.position;
+            var pointBetween = source.transform.position - (distanceVector * 0.5f);
+            var spawnLocation = Random.insideUnitSphere + pointBetween;
+            NPCFactory.Instance.CreateNPC(spawnLocation,
+                face,
+                faceColor,
+                mouth,
+                nose,
+                eyes,
+                0,
+                0,
+                eyebrows,
+                hair,
+                0,
+                hairColor,
+                ears,
+                hasGlasses,
+                isFemale,
+                true);
+
+            yield return new WaitForSeconds(m_breedRate);
+        }
+    }
+
+    public void Breed(NPC source, NPC target)
+    {
+        var amount = Random.Range(m_breedMin, m_breedMax);
+        StartCoroutine(BreedRoutine(source, target, amount));
+    }
 }
+

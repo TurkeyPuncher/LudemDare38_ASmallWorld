@@ -54,13 +54,16 @@ public class NPC : MonoBehaviour
     private float m_walkSpeed = 0.1f;
 
     [SerializeField]
+    private float m_growthTime = 5f;
+
+    [SerializeField]
     MeshRenderer m_stateColorMeshRenderer = null;
 
     [SerializeField]
     bool m_showStateFeedback = true;
 
     [SerializeField]
-    Animator m_animator = null;
+    public Animator m_animator = null;
 
     [SerializeField]
     Transform m_loveGroup = null;
@@ -77,6 +80,9 @@ public class NPC : MonoBehaviour
     [SerializeField]
     public List<BehaviourTrait.Trigger> m_traits = new List<BehaviourTrait.Trigger>();
     
+    [SerializeField]
+    private AnimCurveScale m_babyScaler;
+
     [SerializeField]
     private List<string> m_debugTraits = new List<string>();
 
@@ -107,7 +113,8 @@ public class NPC : MonoBehaviour
 
     private Camera m_mainCamera;
     private Vector3 m_lastScreenPosition;
-        
+
+    private CapsuleCollider m_collider;
 
     void Start()
     {
@@ -116,14 +123,15 @@ public class NPC : MonoBehaviour
         m_stateColorMeshRenderer.enabled = m_showStateFeedback;
         m_mainCamera = GameManager.Instance.MainCamera;
         m_lastScreenPosition = m_mainCamera.WorldToScreenPoint(transform.position);
+        m_collider = GetComponent<CapsuleCollider>();
     }
 
     void OnTriggerEnter(Collider other)
     {
-        Stop();
         CollidedWith = other;
         if (m_inCollisionTrigger)
             return;
+        Stop();
 
         m_inCollisionTrigger = true;
         // Check what we hit
@@ -167,7 +175,8 @@ public class NPC : MonoBehaviour
         NPCFactory.HairColor hairColor, Color hairColorColor,
         NPCFactory.Ears ear, Sprite earSprite,
         bool hasGlasses,
-        bool isFemale)
+        bool isFemale,
+        bool isBaby)
     {
         FaceType = face;
         MouthType = mouth;
@@ -249,6 +258,16 @@ public class NPC : MonoBehaviour
         }
 
         GameManager.Instance.AddPopulation(this);
+
+        if(isBaby)
+        {
+            DisableColliderForTime(m_growthTime);
+            if (m_babyScaler != null)
+            {
+                m_babyScaler.m_duration = m_growthTime;
+                m_babyScaler.enabled = true;
+            }
+        }
     }
 
 
@@ -313,8 +332,10 @@ public class NPC : MonoBehaviour
         StartCoroutine(MoveAwayCoroutine(direction));
     }
 
-    public void Attack()
+    public void Attack(float timeInSeconds)
     {
+        Stop();
+        DisableColliderForTime(timeInSeconds);
         m_animator.SetTrigger("Attack");
     }
 
@@ -331,6 +352,8 @@ public class NPC : MonoBehaviour
 
     public void MakeLove(float timeInSeconds)
     {
+        Stop();
+        DisableColliderForTime(timeInSeconds);
         m_animator.SetTrigger("Love");
         StartCoroutine(MakeLoveRoutine(timeInSeconds));
     }
@@ -427,16 +450,49 @@ public class NPC : MonoBehaviour
     {
         if (HasLoveFor(otherNPC))
         {
-            m_animator.SetTrigger("Love");
+            // Make both NPCs go to love state
+            otherNPC.ForceLove();
+            m_aiStateMachine.SetTrigger("Love");
+
+            // Tell Game Manager to spawn a new NPC
+            GameManager.Instance.Breed(this, otherNPC);
         }
         else if (HasHateFor(otherNPC))
         {
-            m_animator.SetTrigger("Attack");
+            otherNPC.ForceAttack();
+            m_aiStateMachine.SetTrigger("Attack");
+
+            // Tell Game Manager to kill both NPCs
+            //GameManager.Instance.Explode(this);
         }
         else
         {
             MoveAway(transform.position - otherNPC.transform.position);
             m_aiStateMachine.SetTrigger("AfterEvent");
         }
+    }
+
+    // called by other npcs
+    public void ForceLove()
+    {
+        m_aiStateMachine.SetTrigger("Love");
+    }
+
+    // called by other npcs
+    public void ForceAttack()
+    {
+        m_aiStateMachine.SetTrigger("Attack");
+    }
+
+    public void DisableColliderForTime(float timeInSeconds)
+    {
+        m_collider = GetComponent<CapsuleCollider>();
+        m_collider.enabled = false;
+        Invoke("EnableCollider", timeInSeconds);
+    }
+
+    public void EnableCollider()
+    {
+        m_collider.enabled = true;
     }
 }
