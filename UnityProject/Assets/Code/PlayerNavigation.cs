@@ -97,7 +97,7 @@ public class PlayerNavigation : MonoBehaviour
         float verticalMovement = Input.GetAxis("Vertical");
         if (verticalMovement != 0)
         {
-            m_cameraZoomDelta = Mathf.Clamp(m_cameraZoomDelta + verticalMovement * -0.01f, 0f, 1f);
+            m_cameraZoomDelta = Mathf.Clamp(m_cameraZoomDelta + verticalMovement * m_cameraZoomRate, 0f, 1f);
             CameraZoom();
         }
 

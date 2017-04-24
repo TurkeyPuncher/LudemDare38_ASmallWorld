@@ -70,14 +70,14 @@ public class NPCFactory : MonoBehaviour
 
     public enum Nose : byte
     {
-        Square,
+        Small,
         Pointy,
         Snout,
     }
 
     public enum Eyes : byte
     {
-        Normal,
+        Snoopy,
         Asian,
         Disney,
         Droopy,
@@ -90,20 +90,20 @@ public class NPCFactory : MonoBehaviour
 
     public enum Glasses : byte
     {
-        Normal,
+        Regular,
     }
 
-    public enum Brow : byte
+    public enum Eyebrows : byte
     {
         Regular,
-        Fuzzy,
-        Unibrow,
+        Bushy,
+        Uni,
         Thin,
     }
 
     public enum Hair : byte
     {
-        Regular,
+        Pineapple,
         Fabio,
         FlatTop,
         Curly,
@@ -190,7 +190,7 @@ public class NPCFactory : MonoBehaviour
             (Eyes)eyes, m_eyesSprites[eyes],
             (Eyelashes)eyelashes, m_femaleEyelashesSprites[eyelashes],
             (Glasses)glasses, m_glassesSprites[glasses],
-            (Brow)brow, m_browSprites[brow],
+            (Eyebrows)brow, m_browSprites[brow],
             (Hair)hair, m_hairSprites[hair],
             (FemaleHair)femaleHair, m_femaleHairSprites[femaleHair],
             (HairColor)hairColor, m_hairColor[hairColor],

@@ -8,8 +8,18 @@ public class GameManager : MonoBehaviour
     private Camera m_mainCamera = null;
 
     [SerializeField]
+    private int m_startPopulation = 10;
+
+    [SerializeField]
     private PopulationCounter m_populationCounter = null;
-    
+
+    // Behaviour
+    [SerializeField]
+    List<LoveBehaviourTrait> m_loveBehaviours = new List<LoveBehaviourTrait>();
+
+    [SerializeField]
+    List<HateBehaviourTrait> m_hateBehaviours = new List<HateBehaviourTrait>();
+
     private static GameManager m_instance;
     public static GameManager Instance
     {
@@ -24,9 +34,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public Camera MainCamera { get; private set; }
-    public int Population{ get; private set; }
-    
+    public Camera MainCamera { get { return m_mainCamera; } }
+    public int Population { get; private set; }
+
     void Awake()
     {
         // Instance
@@ -37,15 +47,15 @@ public class GameManager : MonoBehaviour
         }
 
         m_instance = this;
-        
-        if (MainCamera == null)
-            MainCamera = Camera.main;
 
-        StartCoroutine(TestAdd());
+        if (m_mainCamera == null)
+            m_mainCamera = Camera.main;
+
+        StartCoroutine(StartRoutine(m_startPopulation, 0f));
     }
 
     void Update()
-    { 
+    {
         // Since we have no player controller, placing here 
         if (Input.GetKey(KeyCode.Escape))
         {
@@ -53,19 +63,48 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    IEnumerator TestAdd()
+    IEnumerator StartRoutine(int amount, float timeInSeconds)
     {
         // TODO Remove
-        for (int i = 0; i < 200; i++)
+        for (int i = 0; i < amount; i++)
         {
             var spherePoint = Random.insideUnitSphere * 5;
             NPCFactory.Instance.CreateNPC(spherePoint);
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(timeInSeconds);
+        }
+
+        // Create starting behaviours
+        GenerateBehaviors();
+        // Create starting behaviours
+        GenerateBehaviors();
+        // Create starting behaviours
+        GenerateBehaviors();
+        // Create starting behaviours
+        GenerateBehaviors();
+    }
+
+    void GenerateBehaviors()
+    {
+        var love = new LoveBehaviourTrait();
+        var hate = new HateBehaviourTrait();
+        m_loveBehaviours.Add(love);
+        m_hateBehaviours.Add(hate);
+
+        var npcs = NPCFactory.Instance.GetComponentsInChildren<NPC>();
+        foreach (var n in npcs)
+        {
+            n.AddLove(love);
+            n.AddHate(hate);
         }
     }
 
-    public void AddPopulation()
+    public void AddPopulation(NPC npc)
     {
+        foreach (var love in m_loveBehaviours)
+            npc.AddLove(love);
+        foreach (var hate in m_hateBehaviours)
+            npc.AddLove(hate);
+
         Population++;
         m_populationCounter.SetPopulation(Population);
     }
@@ -75,6 +114,4 @@ public class GameManager : MonoBehaviour
         Population--;
         m_populationCounter.SetPopulation(Population);
     }
-
-    
 }

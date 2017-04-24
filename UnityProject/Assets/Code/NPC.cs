@@ -8,6 +8,9 @@ public class NPC : MonoBehaviour
 {
     [Header("Avatar Image")]
     [SerializeField]
+    private RectTransform m_canvasTransform;
+
+    [SerializeField]
     private Image m_faceImage;
 
     [SerializeField]
@@ -46,7 +49,7 @@ public class NPC : MonoBehaviour
     [Header("Movement")]
     [SerializeField]
     private Transform m_npcTransform;
-
+    
     [SerializeField]
     private float m_walkSpeed = 0.1f;
 
@@ -59,13 +62,19 @@ public class NPC : MonoBehaviour
     [SerializeField]
     Animator m_animator = null;
 
+    [SerializeField]
+    List<BehaviourTrait.Trigger> m_loveBehaviours = new List<BehaviourTrait.Trigger>();
+
+    [SerializeField]
+    List<BehaviourTrait.Trigger> m_hateBehaviours = new List<BehaviourTrait.Trigger>();
+
     public NPCFactory.Face FaceType { get; private set; }
     public NPCFactory.FaceColor FaceColorType { get; private set; }
     public NPCFactory.Mouth MouthType { get; private set; }
     public NPCFactory.Nose NoseType { get; private set; }
     public NPCFactory.Eyes EyesType { get; private set; }
     public NPCFactory.Glasses GlassesType { get; private set; }
-    public NPCFactory.Brow BrowType { get; private set; }
+    public NPCFactory.Eyebrows BrowType { get; private set; }
     public NPCFactory.Hair HairType { get; private set; }
     public NPCFactory.HairColor HairColorType { get; private set; }
     public NPCFactory.Ears EarType { get; private set; }
@@ -75,22 +84,31 @@ public class NPC : MonoBehaviour
     public NPCFactory.FemaleHair FemaleHairType { get; private set; }
     public NPCFactory.Eyelashes EyelashesType { get; private set; }
 
-    public List<string> Traits = new List<string>();
     public Transform NPCTransform { get { return m_npcTransform; } }
-
-    private NPCFactory m_factory;
+    
     private Animator m_aiStateMachine;
     private string[] m_startStateNames = { "Walk", "Idle", "ChangeDirection" };
     private bool m_inCollisionTrigger = false;
 
+    private Camera m_mainCamera;
+    private Vector3 m_lastScreenPosition;
+
+    [SerializeField]
+    public List<BehaviourTrait.Trigger> m_traits = new List<BehaviourTrait.Trigger>();
+    public List<BehaviourTrait.Trigger> Traits { get { return m_traits; } }
+
+    [SerializeField]
+    private List<string> m_debugTraits = new List<string>();
+
     void Start()
     {
-        m_factory = NPCFactory.Instance;
         m_aiStateMachine = GetComponent<Animator>();
         // Pick a random state
         m_aiStateMachine.Play(m_startStateNames[UnityEngine.Random.Range(0, m_startStateNames.Length)]);
 
         m_stateColorMeshRenderer.enabled = m_showStateFeedback;
+        m_mainCamera = GameManager.Instance.MainCamera;
+        m_lastScreenPosition = m_mainCamera.WorldToScreenPoint(transform.position);
     }
 
     void OnTriggerEnter(Collider other)
@@ -118,6 +136,17 @@ public class NPC : MonoBehaviour
         m_inCollisionTrigger = false;
     }
 
+    public void AddTrait(Enum trait)
+    {
+        var traitString = string.Format("{1}_{0}", trait.GetType().Name, trait);
+        m_debugTraits.Add(traitString);
+        if (Enum.IsDefined(typeof(BehaviourTrait.Trigger), traitString))
+        {
+            var trigger = (BehaviourTrait.Trigger)Enum.Parse(typeof(BehaviourTrait.Trigger), traitString);
+            m_traits.Add(trigger);
+        }
+    }
+
     public void SetTraitsAndLook(NPCFactory.Face face, Sprite faceSprite,
         NPCFactory.FaceColor faceColor, Color faceColorColor,
         NPCFactory.Mouth mouth, Sprite mouthSprite,
@@ -125,7 +154,7 @@ public class NPC : MonoBehaviour
         NPCFactory.Eyes eyes, Sprite eyesSprite,
         NPCFactory.Eyelashes eyelashes, Sprite eyeslashesSprite,
         NPCFactory.Glasses glasses, Sprite glassesSprite,
-        NPCFactory.Brow brow, Sprite browSprite,
+        NPCFactory.Eyebrows brow, Sprite browSprite,
         NPCFactory.Hair hair, Sprite hairSprite,
         NPCFactory.FemaleHair femaleHair, Sprite femaleHairSprite,
         NPCFactory.HairColor hairColor, Color hairColorColor,
@@ -134,21 +163,26 @@ public class NPC : MonoBehaviour
         bool isFemale)
     {
         FaceType = face;
-        Traits.Add(string.Format("{0}:{1}", face.GetType().Name, face));
         MouthType = mouth;
-        Traits.Add(string.Format("{0}:{1}", mouth.GetType().Name, mouth));
         NoseType = nose;
-        Traits.Add(string.Format("{0}:{1}", nose.GetType().Name, nose));
         EyesType = eyes;
-        Traits.Add(string.Format("{0}:{1}", eyes.GetType().Name, eyes));
         BrowType = brow;
-        Traits.Add(string.Format("{0}:{1}", brow.GetType().Name, brow));
         HairType = hair;
-        Traits.Add(string.Format("{0}:{1}", hair.GetType().Name, hair));
         EarType = ear;
-        Traits.Add(string.Format("{0}:{1}", ear.GetType().Name, ear));
 
-        
+        AddTrait(face);
+        AddTrait(faceColor);
+        // AddTrait(mouth); Not in use
+        AddTrait(nose);
+        //AddTrait(eyes); Not in use
+        //AddTrait(eyelashes); Added later
+        //AddTrait(glasses); Added later
+        AddTrait(brow);
+        AddTrait(hair);
+        //AddTrait(femaleHair); Added later
+        AddTrait(hairColor);
+        AddTrait(ear);
+
         m_faceImage.sprite = faceSprite;
         m_faceImage.color = faceColorColor;
         m_mouthImage.sprite = mouthSprite;
@@ -174,7 +208,7 @@ public class NPC : MonoBehaviour
         if (hasGlasses)
         {
             GlassesType = glasses;
-            Traits.Add(string.Format("{0}_{1}", glasses.GetType().Name, glasses));
+            AddTrait(glasses);
 
             m_glassesImage.sprite = glassesSprite;
             m_glassesImage.color = faceColorColor;
@@ -190,9 +224,9 @@ public class NPC : MonoBehaviour
         if (isFemale)
         {
             FemaleHairType = femaleHair;
-            Traits.Add(string.Format("{0}:{1}", femaleHair.GetType().Name, femaleHair));
+            AddTrait(femaleHair);
             EyelashesType = eyelashes;
-            Traits.Add(string.Format("{0}:{1}", eyelashes.GetType().Name, eyelashes));
+            AddTrait(eyelashes);
             
             m_femaleHairImage.enabled = true;
             m_femaleHairImage.sprite = femaleHairSprite;
@@ -207,8 +241,9 @@ public class NPC : MonoBehaviour
             m_eyelashesImage.enabled = false;
         }
 
-        GameManager.Instance.AddPopulation();
+        GameManager.Instance.AddPopulation(this);
     }
+
 
     public IEnumerator ChangeDirectionRoutine(float timeToChange)
     {
@@ -237,6 +272,7 @@ public class NPC : MonoBehaviour
         while (true)
         {
             m_npcTransform.transform.RotateAround(Vector3.zero, m_npcTransform.transform.right, m_walkSpeed);
+            SetImageDirection();
             yield return new WaitForEndOfFrame();
         }
     }
@@ -259,6 +295,7 @@ public class NPC : MonoBehaviour
         while (true)
         {
             m_npcTransform.transform.RotateAround(Vector3.zero, m_npcTransform.transform.right, -m_walkSpeed * 3f);
+            SetImageDirection();
             yield return new WaitForEndOfFrame();
         }
     }
@@ -288,5 +325,55 @@ public class NPC : MonoBehaviour
     public void Dead()
     {
         GameManager.Instance.RemovePopulation();
+    }
+
+    public void SetImageDirection()
+    {
+        var direction = m_mainCamera.WorldToScreenPoint(transform.position) - m_lastScreenPosition;
+        m_canvasTransform.localScale = (direction.x > 0) ? new Vector3(-1f, 1f, 1f) : Vector3.one;
+        m_lastScreenPosition = m_mainCamera.WorldToScreenPoint(transform.position);
+    }
+
+    public void SetMood()
+    {
+        if (m_loveBehaviours.Count > m_hateBehaviours.Count)
+        {
+            m_mouthImage.sprite = NPCFactory.Instance.m_mouthSprites[(int)NPCFactory.Mouth.Happy];
+        }
+        else if (m_loveBehaviours.Count + 2 < m_hateBehaviours.Count)
+        {
+            m_mouthImage.sprite = NPCFactory.Instance.m_mouthSprites[(int)NPCFactory.Mouth.Angry];
+        }
+        else if (m_loveBehaviours.Count < m_hateBehaviours.Count)
+        {
+            m_mouthImage.sprite = NPCFactory.Instance.m_mouthSprites[(int)NPCFactory.Mouth.Sad];
+        }
+        else if (m_loveBehaviours.Count == m_hateBehaviours.Count)
+        {
+            m_mouthImage.sprite = NPCFactory.Instance.m_mouthSprites[(int)NPCFactory.Mouth.Neutral];
+        }
+    }
+
+    public void AddLove(BehaviourTrait love)
+    {
+        if (m_traits.Contains(love.Source))
+        {
+            if(!m_loveBehaviours.Contains(love.Target))
+            { 
+                m_loveBehaviours.Add(love.Target);
+                SetMood();
+            }
+        }
+    }
+    public void AddHate(BehaviourTrait hate)
+    {
+        if (m_traits.Contains(hate.Source))
+        {
+            if (!m_hateBehaviours.Contains(hate.Target))
+            {
+                m_hateBehaviours.Add(hate.Target);
+                SetMood();
+            }
+        }
     }
 }
